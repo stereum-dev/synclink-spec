@@ -1,0 +1,11 @@
+type: object
+properties:
+  id:
+    type: number
+    description: Epoch id
+    example: 4255
+  slots:
+    type: array
+    items:
+      nullable: true
+      $ref: "#/components/schemas/BeaconBlockBody"

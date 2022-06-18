@@ -2,10 +2,11 @@
   "name": "synclink-spec",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
-    "docs": "node src/index.js",
-    "docs:dev": "nodemon src/index.js"
+    "start": "redocly preview-docs",
+    "build": "redocly bundle -o dist",
+    "test": "redocly lint"
   },
   "config": {
     "port": "4040"
@@ -14,10 +15,6 @@
   "author": "Ali Montajebi",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.1",
-    "swagger-ui-express": "^4.4.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.16"
+    "@redocly/cli": "^1.0.0-beta.102"
   }
 }

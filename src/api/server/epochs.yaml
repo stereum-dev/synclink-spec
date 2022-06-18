@@ -1,0 +1,21 @@
+get:
+  tags:
+    - Synclink Server
+  description: Get latest epochs
+  operationId: getEpochs
+  parameters: []
+  responses:
+    "200":
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                value: success
+              epochs:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Epoch"
