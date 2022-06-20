@@ -1,0 +1,11 @@
+Epoch:
+  type: object
+  properties:
+    id:
+      type: number
+      description: Epoch id
+      example: 4255
+    slots:
+      type: array
+      items:
+        $ref: "#/components/schemas/Epoch"

@@ -6,6 +6,7 @@ info:
   description: SyncLink client and server specification.
   license:
     name: MIT
+    url: https://github.com/stereum-dev/synclink-spec/blob/main/LICENSE
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -17,12 +18,15 @@ tags:
 
 paths:
   /api/v1/epochs:
-    $ref: "./api/server/epochs.yaml"
+    $ref: api/server/epochs.yaml
+
+  /api/v1/checkpoint:
+    $ref: api/client/checkpoint.yaml
 
 components:
   schemas:
     Epoch:
-      $ref: "./types/epoch.yaml"
+      $ref: "./types/synclink.yaml#/Epoch"
     BeaconState:
       $ref: "./types/state.yaml#/BeaconState"
     BeaconBlock:

@@ -1,10 +1,10 @@
 get:
   tags:
-    - Synclink Server
-  description: Get latest epochs
-  operationId: getEpochs
+    - Synclink Client
+  description: Get finalized checkpoint
+  operationId: getCheckpoint
   parameters: []
-  summary: Get Epochs
+  summary: Get Checkpoint
   responses:
     "200":
       description: Success
@@ -16,7 +16,5 @@ get:
               status:
                 type: string
                 example: success
-              epochs:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Epoch"
+              checkpoint:
+                $ref: "#/components/schemas/BeaconBlockBody"
