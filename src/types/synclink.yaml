@@ -8,4 +8,4 @@ Epoch:
     slots:
       type: array
       items:
-        $ref: "#/components/schemas/Epoch"
+        $ref: ./block.yaml#/BeaconBlockBody

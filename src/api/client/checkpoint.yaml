@@ -17,4 +17,4 @@ get:
                 type: string
                 example: success
               checkpoint:
-                $ref: "#/components/schemas/BeaconBlockBody"
+                $ref: ../../types/block.yaml#/BeaconBlockBody

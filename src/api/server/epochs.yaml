@@ -19,4 +19,4 @@ get:
               epochs:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Epoch"
+                  $ref: ../../types/synclink.yaml#/Epoch

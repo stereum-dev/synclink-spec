@@ -109,10 +109,6 @@ components:
       $ref: "./types/altair/sync_committee.yaml#/Altair/SyncCommitteeSignature"
     Altair.SyncCommitteeSubscription:
       $ref: "./types/altair/sync_committee.yaml#/Altair/SyncCommitteeSubscription"
-    Altair.ContributionAndProof:
-      $ref: "./types/altair/sync_committee.yaml#/Altair/ContributionAndProof"
-    Altair.SignedContributionAndProof:
-      $ref: "./types/altair/sync_committee.yaml#/Altair/SignedContributionAndProof"
     Altair.SyncCommitteeContribution:
       $ref: "./types/altair/sync_committee.yaml#/Altair/SyncCommitteeContribution"
     Altair.SyncCommittee:
