@@ -1,0 +1,1248 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: SyncLink API Specification
+  description: SyncLink client and server specification.
+  license:
+    name: MIT
+    url: 'https://github.com/stereum-dev/synclink-spec/blob/main/LICENSE'
+  contact:
+    name: API Support
+    url: 'http://www.example.com/support'
+    email: support@example.com
+tags:
+  - name: Synclink Server
+  - name: Synclink Client
+paths:
+  /api/v1/epochs:
+    get:
+      tags:
+        - Synclink Server
+      description: Get latest epochs
+      operationId: getEpochs
+      parameters: []
+      summary: Get Epochs
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  epochs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Epoch'
+  /api/v1/checkpoint:
+    get:
+      tags:
+        - Synclink Client
+      description: Get finalized checkpoint
+      operationId: getCheckpoint
+      parameters: []
+      summary: Get Checkpoint
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  checkpoint:
+                    $ref: '#/components/schemas/Epoch/properties/slots/items'
+components:
+  schemas:
+    Epoch:
+      type: object
+      properties:
+        id:
+          type: number
+          description: Epoch id
+          example: 4255
+        slots:
+          type: array
+          items:
+            type: object
+            description: 'The [`BeaconBlockBody`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#beaconblockbody) object from the CL spec.'
+            properties:
+              randao_reveal:
+                allOf:
+                  - $ref: '#/components/schemas/Signature'
+                  - description: The RanDAO reveal value provided by the validator.
+              eth1_data:
+                $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+              graffiti:
+                type: string
+                pattern: '^0x[a-fA-F0-9]{64}$'
+              proposer_slashings:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProposerSlashing'
+              attester_slashings:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttesterSlashing'
+              attestations:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attestation'
+              deposits:
+                type: array
+                items:
+                  type: object
+                  description: 'The [`Deposit`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#deposit) object from the CL spec.'
+                  properties:
+                    proof:
+                      type: array
+                      description: Branch in the deposit tree.
+                      items:
+                        allOf:
+                          - $ref: '#/components/schemas/Root'
+                      minItems: 32
+                      maxItems: 32
+                    data:
+                      type: object
+                      description: 'The [`DepositData`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#depositdata) object from the CL spec.'
+                      properties:
+                        pubkey:
+                          $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+                        withdrawal_credentials:
+                          allOf:
+                            - $ref: '#/components/schemas/Root'
+                            - description: The withdrawal credentials.
+                        amount:
+                          allOf:
+                            - $ref: '#/components/schemas/Uint64'
+                            - description: Amount in Gwei.
+                        signature:
+                          allOf:
+                            - $ref: '#/components/schemas/Signature'
+                            - description: Container self-signature.
+              voluntary_exits:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SignedVoluntaryExit'
+    BeaconState:
+      type: object
+      description: 'The [`BeaconState`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#beaconblock) object from the CL spec.'
+      properties:
+        genesis_time:
+          $ref: '#/components/schemas/Uint64'
+        genesis_validators_root:
+          $ref: '#/components/schemas/Root'
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        fork:
+          $ref: '#/components/schemas/Fork'
+        latest_block_header:
+          description: 'The [`BeaconBlockHeader`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#beaconblockheader) object from the CL spec.'
+          allOf:
+            - $ref: '#/components/schemas/BeaconBlock/allOf/0'
+            - type: object
+              properties:
+                body_root:
+                  allOf:
+                    - $ref: '#/components/schemas/Root'
+                    - description: The tree hash merkle root of the `BeaconBlockBody` for the `BeaconBlock`
+        block_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        state_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        historical_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          maxItems: 16777216
+        eth1_data:
+          type: object
+          description: 'The [`Eth1Data`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#eth1data) object from the CL spec.'
+          properties:
+            deposit_root:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: Root of the deposit tree.
+            deposit_count:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Total number of deposits.
+            block_hash:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: Ethereum 1.x block hash.
+        eth1_data_votes:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+          maxItems: 1024
+        eth1_deposit_index:
+          $ref: '#/components/schemas/Uint64'
+        validators:
+          type: array
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ValidatorResponse/properties/validator'
+        balances:
+          type: array
+          description: Validator balances in gwei
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        randao_mixes:
+          type: array
+          items:
+            allOf:
+              - type: string
+                example: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2'
+                pattern: '^0x[a-fA-F0-9]{64}$'
+          minItems: 65536
+          maxItems: 65536
+        slashings:
+          type: array
+          description: Per-epoch sums of slashed effective balances
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+          minItems: 8192
+          maxItems: 8192
+        previous_epoch_attestations:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/current_epoch_attestations/items/allOf/0'
+        current_epoch_attestations:
+          type: array
+          items:
+            allOf:
+              - type: object
+                description: 'The [`PendingAttestation`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#pendingattestation) object from the CL spec.'
+                properties:
+                  aggregation_bits:
+                    type: string
+                    pattern: '^0x[a-fA-F0-9]+$'
+                    description: Attester aggregation bits.
+                  data:
+                    $ref: '#/components/schemas/AttestationData'
+                  inclusion_delay:
+                    $ref: '#/components/schemas/Uint64'
+                  proposer_index:
+                    $ref: '#/components/schemas/Uint64'
+        justification_bits:
+          type: string
+          pattern: '^0x[a-fA-F0-9]+$'
+          example: '0x01'
+          description: Bit set for every recent justified epoch
+        previous_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        current_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        finalized_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+    BeaconBlock:
+      description: 'The [`BeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#beaconblock) object from the CL spec.'
+      allOf:
+        - type: object
+          properties:
+            slot:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: The slot to which this block corresponds.
+            proposer_index:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Index of validator in validator registry.
+            parent_root:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: The signing merkle root of the parent `BeaconBlock`.
+            state_root:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: The tree hash merkle root of the `BeaconState` for the `BeaconBlock`.
+        - type: object
+          properties:
+            body:
+              $ref: '#/components/schemas/Epoch/properties/slots/items'
+    SignedBeaconBlock:
+      type: object
+      description: 'The [`SignedBeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#signedbeaconblock) object envelope from the CL spec.'
+      properties:
+        message:
+          $ref: '#/components/schemas/BeaconBlock'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    SignedBeaconBlockHeader:
+      type: object
+      description: 'The [`SignedBeaconBlockHeader`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#signedbeaconblockheader) object envelope from the CL spec.'
+      properties:
+        message:
+          $ref: '#/components/schemas/BeaconState/properties/latest_block_header'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    ValidatorResponse:
+      type: object
+      properties:
+        index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in validator registry.
+        balance:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Current validator balance in gwei.
+        status:
+          $ref: '#/components/schemas/ValidatorStatus'
+        validator:
+          type: object
+          properties:
+            pubkey:
+              $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+            withdrawal_credentials:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: Root of withdrawal credentials
+            effective_balance:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Balance at stake in Gwei.
+            slashed:
+              type: boolean
+              example: false
+              description: Was validator slashed (not longer active).
+            activation_eligibility_epoch:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: When criteria for activation were met.
+            activation_epoch:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Epoch when validator activated. 'FAR_FUTURE_EPOCH' if not activated
+            exit_epoch:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Epoch when validator exited. 'FAR_FUTURE_EPOCH' if not exited.
+            withdrawable_epoch:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: When validator can withdraw or transfer funds. 'FAR_FUTURE_EPOCH' if not defined
+    ValidatorBalanceResponse:
+      type: object
+      properties:
+        index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in validator registry.
+        balance:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Current validator balance in gwei.
+    ValidatorStatus:
+      description: |
+        Possible statuses:
+        - **pending_initialized** - When the first deposit is processed, but not enough funds are available (or not yet the end of the first epoch) to get validator into the activation queue.
+        - **pending_queued** - When validator is waiting to get activated, and have enough funds etc. while in the queue, validator activation epoch keeps changing until it gets to the front and make it through (finalization is a requirement here too).
+        - **active_ongoing** - When validator must be attesting, and have not initiated any exit.
+        - **active_exiting** - When validator is still active, but filed a voluntary request to exit.
+        - **active_slashed** - When validator is still active, but have a slashed status and is scheduled to exit.
+        - **exited_unslashed** - When validator has reached reguler exit epoch, not being slashed, and doesn't have to attest any more, but cannot withdraw yet.
+        - **exited_slashed** - When validator has reached reguler exit epoch, but was slashed, have to wait for a longer withdrawal period.
+        - **withdrawal_possible** - After validator has exited, a while later is permitted to move funds, and is truly out of the system.
+        - **withdrawal_done** - (not possible in phase0, except slashing full balance) - actually having moved funds away
+
+        [Validator status specification](https://hackmd.io/ofFJ5gOmQpu1jjHilHbdQQ)
+      enum:
+        - pending_initialized
+        - pending_queued
+        - active_ongoing
+        - active_exiting
+        - active_slashed
+        - exited_unslashed
+        - exited_slashed
+        - withdrawal_possible
+        - withdrawal_done
+      example: active_ongoing
+    Committee:
+      description: Group of validators assigned to attest at specific slot and that have the same committee index (shard in phase 1)
+      type: object
+      properties:
+        index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Committee index at a slot
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        validators:
+          type: array
+          description: List of validator indices assigned to this committee
+          items:
+            $ref: '#/components/schemas/Uint64'
+    AttesterSlashing:
+      type: object
+      description: 'The [`AttesterSlashing`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/core/0_beacon-chain.md#attesterslashing) object from the CL spec.'
+      properties:
+        attestation_1:
+          type: object
+          description: 'The [`IndexedAttestation`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#indexedattestation) object from the CL spec.'
+          properties:
+            attesting_indices:
+              type: array
+              maxItems: 2048
+              description: Attesting validator indices
+              items:
+                $ref: '#/components/schemas/Uint64'
+            signature:
+              allOf:
+                - $ref: '#/components/schemas/Signature'
+                - description: 'The BLS signature of the `IndexedAttestation`, created by the validator of the attestation.'
+            data:
+              $ref: '#/components/schemas/AttestationData'
+        attestation_2:
+          $ref: '#/components/schemas/AttesterSlashing/properties/attestation_1'
+    ProposerSlashing:
+      type: object
+      description: 'The [`ProposerSlashing`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#proposerslashing) object from the CL spec.'
+      properties:
+        signed_header_1:
+          $ref: '#/components/schemas/SignedBeaconBlockHeader'
+        signed_header_2:
+          $ref: '#/components/schemas/SignedBeaconBlockHeader'
+    SignedVoluntaryExit:
+      type: object
+      description: 'The [`SignedVoluntaryExit`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#signedvoluntaryexit) object from the CL spec.'
+      properties:
+        message:
+          type: object
+          description: 'The [`VoluntaryExit`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#voluntaryexit) object from the CL spec.'
+          properties:
+            epoch:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Minimum epoch for processing exit.
+            validator_index:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Index of the exiting validator.
+        signature:
+          $ref: '#/components/schemas/Signature'
+    AttesterDuty:
+      type: object
+      properties:
+        pubkey:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{96}$'
+          description: 'The validator''s BLS public key, uniquely identifying them. _48-bytes, hex encoded with 0x prefix, case insensitive._'
+          example: '0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a'
+        validator_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in validator registry
+        committee_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The committee index
+        committee_length:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Number of validators in committee
+        committees_at_slot:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Number of committees at the provided slot
+        validator_committee_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in committee
+        slot:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The slot at which the validator must attest.
+    ProposerDuty:
+      type: object
+      properties:
+        pubkey:
+          $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+        validator_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in validator registry.
+        slot:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The slot at which the validator must propose block.
+    Altair.SyncDuty:
+      type: object
+      properties:
+        pubkey:
+          $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+        validator_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: Index of validator in validator registry.
+        validator_sync_committee_indices:
+          type: array
+          description: The indices of the validator in the sync committee.
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Uint64'
+    SignedAggregateAndProof:
+      description: 'The [`SignedAggregateAndProof`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/validator.md#signedaggregateandproof) object'
+      properties:
+        message:
+          allOf:
+            - type: object
+              description: 'The [`AggregateAndProof`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/validator.md#aggregateandproof) without selection_proof'
+              properties:
+                aggregator_index:
+                  $ref: '#/components/schemas/Uint64'
+                aggregate:
+                  $ref: '#/components/schemas/Attestation'
+            - type: object
+              properties:
+                selection_proof:
+                  $ref: '#/components/schemas/Signature'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    Attestation:
+      type: object
+      description: 'The [`Attestation`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#attestation) object from the CL spec.'
+      properties:
+        aggregation_bits:
+          type: string
+          example: '0x01'
+          pattern: '^0x[a-fA-F0-9]+$'
+          description: Attester aggregation bits.
+        signature:
+          allOf:
+            - $ref: '#/components/schemas/Signature'
+            - description: BLS aggregate signature.
+        data:
+          $ref: '#/components/schemas/AttestationData'
+    AttestationData:
+      type: object
+      description: 'The [`AttestationData`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#attestationdata) object from the CL spec.'
+      properties:
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        index:
+          $ref: '#/components/schemas/Uint64'
+        beacon_block_root:
+          allOf:
+            - $ref: '#/components/schemas/Root'
+            - description: LMD GHOST vote.
+        source:
+          $ref: '#/components/schemas/Checkpoint'
+        target:
+          $ref: '#/components/schemas/Checkpoint'
+    Fork:
+      type: object
+      description: 'The [`Fork`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#fork) object from the CL spec.'
+      properties:
+        previous_version:
+          $ref: '#/components/schemas/ForkVersion'
+        current_version:
+          $ref: '#/components/schemas/ForkVersion'
+        epoch:
+          $ref: '#/components/schemas/Uint64'
+    Checkpoint:
+      type: object
+      description: 'The [`Checkpoint`](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/beacon-chain.md#checkpoint'
+      properties:
+        epoch:
+          $ref: '#/components/schemas/Uint64'
+        root:
+          $ref: '#/components/schemas/Root'
+    Uint64:
+      type: string
+      example: '1'
+    NetworkIdentity:
+      type: object
+      properties:
+        peer_id:
+          $ref: '#/components/schemas/PeerId'
+        enr:
+          type: string
+          description: 'Ethereum node record. [Read more](https://eips.ethereum.org/EIPS/eip-778)'
+          example: 'enr:-IS4QHCYrYZbAKWCBRlAy5zzaDZXJBGkcnh4MHcBFZntXNFrdvJjX04jRzjzCBOonrkTfj499SZuOh8R33Ls8RRcy5wBgmlkgnY0gmlwhH8AAAGJc2VjcDI1NmsxoQPKY0yuDUmstAHYpMa2_oxVtw0RW_QAdpzBQA8yWM0xOIN1ZHCCdl8'
+        p2p_addresses:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Peer/properties/last_seen_p2p_address/allOf/0'
+              - description: 'Node''s addresses on which eth2 rpc requests are served. [Read more](https://docs.libp2p.io/reference/glossary/#multiaddr)'
+        discovery_addresses:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Peer/properties/last_seen_p2p_address/allOf/0'
+              - description: 'Node''s addresses on which is listening for discv5 requests. [Read more](https://docs.libp2p.io/reference/glossary/#multiaddr)'
+              - example: /ip4/7.7.7.7/udp/30303/p2p/QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N
+        metadata:
+          type: object
+          description: 'Based on eth2 [Metadata object](https://github.com/ethereum/consensus-specs/blob/v1.0.1/specs/phase0/p2p-interface.md#metadata)'
+          properties:
+            seq_number:
+              allOf:
+                - description: 'Uint64 starting at 0 used to version the node''s metadata. If any other field in the local MetaData changes, the node MUST increment seq_number by 1.'
+                - $ref: '#/components/schemas/Uint64'
+            attnets:
+              allOf:
+                - description: Bitvector representing the node's persistent attestation subnet subscriptions.
+                - $ref: '#/components/schemas/Hex'
+                - example: '0x0000000000000000'
+            syncnets:
+              allOf:
+                - description: 'Bitvector representing the node''s sync committee subnet subscriptions. This metadata is not present in phase0, but will be present in Altair.'
+                - $ref: '#/components/schemas/Hex'
+                - example: '0x0f'
+                - required: false
+    Peer:
+      type: object
+      properties:
+        peer_id:
+          $ref: '#/components/schemas/PeerId'
+        enr:
+          allOf:
+            - $ref: '#/components/schemas/NetworkIdentity/properties/enr'
+            - nullable: true
+        last_seen_p2p_address:
+          allOf:
+            - type: string
+              description: '[Read more](https://docs.libp2p.io/reference/glossary/#multiaddr)'
+              example: /ip4/7.7.7.7/tcp/4242/p2p/QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N
+            - description: Multiaddrs used in last peer connection.
+        state:
+          $ref: '#/components/schemas/PeerConnectionState'
+        direction:
+          $ref: '#/components/schemas/PeerConnectionDirection'
+    PeerId:
+      type: string
+      description: 'Cryptographic hash of a peer’s public key. [Read more](https://docs.libp2p.io/concepts/peer-id/)'
+      example: QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N
+    PeerConnectionState:
+      type: string
+      enum:
+        - disconnected
+        - connecting
+        - connected
+        - disconnecting
+    PeerConnectionDirection:
+      type: string
+      enum:
+        - inbound
+        - outbound
+    GenesisTime:
+      allOf:
+        - $ref: '#/components/schemas/Uint64'
+        - example: '1590832934'
+        - description: 'The genesis_time configured for the beacon node, which is the unix time in seconds at which the Eth2.0 chain began.'
+    Version:
+      type: string
+      description: 'A string which uniquely identifies the client implementation and its version; similar to [HTTP User-Agent](https://tools.ietf.org/html/rfc7231#section-5.5.3).'
+      example: Lighthouse/v0.1.5 (Linux x86_64)
+    ForkVersion:
+      type: string
+      description: a fork version number
+      example: '0x00000000'
+      pattern: '^0x[a-fA-F0-9]{8}$'
+    DependentRoot:
+      allOf:
+        - $ref: '#/components/schemas/Root'
+        - description: The block root that this response is dependent on.
+    ExecutionOptimistic:
+      allOf:
+        - type: boolean
+        - example: false
+        - description: 'True if the response references an unverified execution payload. Optimistic information may be invalidated at a later time. If the field is not present, assume the False value.'
+    Root:
+      type: string
+      example: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2'
+      pattern: '^0x[a-fA-F0-9]{64}$'
+    Hex:
+      type: string
+      pattern: '^0x[a-fA-F0-9]{2,}$'
+    Graffiti:
+      type: string
+      format: hex
+      example: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2'
+      pattern: '^0x[a-fA-F0-9]{64}$'
+    Signature:
+      type: string
+      pattern: '^0x[a-fA-F0-9]{192}$'
+      example: '0x1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505cc411d61252fb6cb3fa0017b679f8bb2305b26a285fa2737f175668d0dff91cc1b66ac1fb663c9bc59509846d6ec05345bd908eda73e670af888da41af171505'
+    ErrorMessage:
+      type: object
+      properties:
+        code:
+          description: Either specific error code in case of invalid request or http status code
+          type: number
+          example: 404
+        message:
+          description: Message describing error
+          type: string
+        stacktraces:
+          description: 'Optional stacktraces, sent when node is in debug mode'
+          type: array
+          items:
+            type: string
+    IndexedErrorMessage:
+      type: object
+      properties:
+        code:
+          description: Either specific error code in case of invalid request or http status code
+          type: number
+          example: 400
+        message:
+          description: Message describing error
+          type: string
+          example: some failures
+        failures:
+          description: List of individual items that have failed
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                description: Index of item in the request list that caused the error
+                type: number
+                example: 3
+              message:
+                description: Message describing error
+                type: string
+                example: invalid signature
+    Altair.SignedBeaconBlock:
+      type: object
+      description: 'The [`SignedBeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.0-alpha.3/specs/altair/beacon-chain.md#signedbeaconblock) object envelope from the CL Altair spec.'
+      properties:
+        message:
+          $ref: '#/components/schemas/Altair.BeaconBlock'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    Altair.BeaconBlock:
+      description: 'The [`BeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.0-alpha.3/specs/altair/beacon-chain.md#beaconblock) object from the CL Altair spec.'
+      allOf:
+        - type: object
+          properties:
+            slot:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: The slot to which this block corresponds.
+            proposer_index:
+              allOf:
+                - $ref: '#/components/schemas/Uint64'
+                - description: Index of validator in validator registry.
+            parent_root:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: The signing merkle root of the parent `BeaconBlock`.
+            state_root:
+              allOf:
+                - $ref: '#/components/schemas/Root'
+                - description: The tree hash merkle root of the `BeaconState` for the `BeaconBlock`.
+        - type: object
+          properties:
+            body:
+              type: object
+              description: 'The [`BeaconBlockBody`](https://github.com/ethereum/consensus-specs/blob/v1.1.0-alpha.3/specs/altair/beacon-chain.md#beaconblockbody) object from the CL Altair spec.'
+              properties:
+                randao_reveal:
+                  allOf:
+                    - $ref: '#/components/schemas/Signature'
+                    - description: The RanDAO reveal value provided by the validator.
+                eth1_data:
+                  $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+                graffiti:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{64}$'
+                proposer_slashings:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ProposerSlashing'
+                attester_slashings:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AttesterSlashing'
+                attestations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Attestation'
+                deposits:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BeaconBlock/allOf/1/properties/body/properties/deposits/items'
+                voluntary_exits:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SignedVoluntaryExit'
+                sync_aggregate:
+                  type: object
+                  description: 'The [`SyncAggregate`](https://github.com/ethereum/consensus-specs/blob/v1.1.0-alpha.1/specs/altair/beacon-chain.md#syncaggregate) object from the CL Altair spec.'
+                  properties:
+                    sync_committee_bits:
+                      type: string
+                      pattern: '^0x[a-fA-F0-9]+$'
+                      example: '0x01'
+                      description: Aggregation bits of sync
+                    sync_committee_signature:
+                      $ref: '#/components/schemas/Signature'
+    Altair.BeaconState:
+      type: object
+      description: 'The [`BeaconState`](https://github.com/ethereum/consensus-specs/blob/v1.1.0-alpha.3/specs/altair/beacon-chain.md#beaconstate) object from the CL Altair spec.'
+      properties:
+        genesis_time:
+          $ref: '#/components/schemas/Uint64'
+        genesis_validators_root:
+          $ref: '#/components/schemas/Root'
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        fork:
+          $ref: '#/components/schemas/Fork'
+        latest_block_header:
+          $ref: '#/components/schemas/BeaconState/properties/latest_block_header'
+        block_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        state_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        historical_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          maxItems: 16777216
+        eth1_data:
+          $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+        eth1_data_votes:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+          maxItems: 1024
+        eth1_deposit_index:
+          $ref: '#/components/schemas/Uint64'
+        validators:
+          type: array
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ValidatorResponse/properties/validator'
+        balances:
+          type: array
+          description: Validator balances in gwei
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        randao_mixes:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/randao_mixes/items/allOf/0'
+          minItems: 65536
+          maxItems: 65536
+        slashings:
+          type: array
+          description: Per-epoch sums of slashed effective balances
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+          minItems: 8192
+          maxItems: 8192
+        previous_epoch_participation:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/current_epoch_participation'
+        current_epoch_participation:
+          type: array
+          items:
+            allOf:
+              - type: string
+                description: 'Unsigned 8 bit integer, max value 255'
+                pattern: '^[1-2]?[0-9]{1,2}$'
+                example: '0'
+          maxItems: 1099511627776
+        justification_bits:
+          type: string
+          pattern: '^0x[a-fA-F0-9]+$'
+          example: '0x01'
+          description: Bit set for every recent justified epoch
+        previous_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        current_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        finalized_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        inactivity_scores:
+          description: Per-validator inactivity scores. New in Altair
+          type: array
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        current_sync_committee:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/next_sync_committee'
+        next_sync_committee:
+          type: object
+          properties:
+            pubkeys:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+              minItems: 512
+              maxItems: 512
+            aggregate_pubkey:
+              $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+    Altair.SyncCommitteeSignature:
+      type: object
+      properties:
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        beacon_block_root:
+          $ref: '#/components/schemas/Root'
+        validator_index:
+          $ref: '#/components/schemas/Uint64'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    Altair.SyncCommitteeSubscription:
+      type: object
+      properties:
+        validator_index:
+          $ref: '#/components/schemas/Uint64'
+        sync_committee_indices:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        until_epoch:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The final epoch (exclusive value) that the specified validator requires the subscription for.
+    Altair.SyncCommitteeContribution:
+      type: object
+      properties:
+        slot:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The slot at which the validator is providing a sync committee contribution.
+        beacon_block_root:
+          allOf:
+            - $ref: '#/components/schemas/Root'
+            - description: Block root for this contribution.
+        subcommittee_index:
+          allOf:
+            - $ref: '#/components/schemas/Uint64'
+            - description: The index of the subcommittee that the contribution pertains to.
+        aggregation_bits:
+          allOf:
+            - description: A bit is set if a signature from the validator at the corresponding index in the subcommittee is present in the aggregate `signature`.
+            - $ref: '#/components/schemas/Hex'
+            - example: '0x01'
+        signature:
+          allOf:
+            - $ref: '#/components/schemas/Signature'
+            - description: Signature by the validator(s) over the block root of `slot`
+    Altair.SyncCommittee:
+      type: object
+      properties:
+        validators:
+          allOf:
+            - type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/Uint64'
+            - description: all of the validator indices in the current sync committee
+        validator_aggregates:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Altair.SyncCommittee/properties/validators/allOf/0'
+              - description: Subcommittee slices of the current sync committee
+    ExecutionAddress:
+      type: string
+      description: An address on the execution (Ethereum 1) network.
+      example: '0xabcf8e0d4e9587369b2301d0790347320302cc09'
+      pattern: '^0x[a-fA-F0-9]{40}$'
+    Bellatrix.BeaconState:
+      type: object
+      description: 'The [`BeaconState`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#beaconstate) object from the Eth2.0 Bellatrix spec.'
+      properties:
+        genesis_time:
+          $ref: '#/components/schemas/Uint64'
+        genesis_validators_root:
+          $ref: '#/components/schemas/Root'
+        slot:
+          $ref: '#/components/schemas/Uint64'
+        fork:
+          $ref: '#/components/schemas/Fork'
+        latest_block_header:
+          $ref: '#/components/schemas/BeaconState/properties/latest_block_header'
+        block_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        state_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          minItems: 8192
+          maxItems: 8192
+        historical_roots:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Root'
+          maxItems: 16777216
+        eth1_data:
+          $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+        eth1_data_votes:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+          maxItems: 1024
+        eth1_deposit_index:
+          $ref: '#/components/schemas/Uint64'
+        validators:
+          type: array
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ValidatorResponse/properties/validator'
+        balances:
+          type: array
+          description: Validator balances in gwei
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        randao_mixes:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BeaconState/properties/randao_mixes/items/allOf/0'
+          minItems: 65536
+          maxItems: 65536
+        slashings:
+          type: array
+          description: Per-epoch sums of slashed effective balances
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+          minItems: 8192
+          maxItems: 8192
+        previous_epoch_participation:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/current_epoch_participation'
+        current_epoch_participation:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/current_epoch_participation'
+        justification_bits:
+          type: string
+          pattern: '^0x[a-fA-F0-9]+$'
+          example: '0x01'
+          description: Bit set for every recent justified epoch
+        previous_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        current_justified_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        finalized_checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        inactivity_scores:
+          description: Per-validator inactivity scores. New in Altair
+          type: array
+          maxItems: 1099511627776
+          items:
+            allOf:
+              - $ref: '#/components/schemas/Uint64'
+        current_sync_committee:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/next_sync_committee'
+        next_sync_committee:
+          $ref: '#/components/schemas/Altair.BeaconState/properties/next_sync_committee'
+        latest_execution_payload_header:
+          description: 'The [`ExecutionPayloadHeader`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#executionpayloadheader) object from the CL Bellatrix spec.'
+          allOf:
+            - type: object
+              description: 'The [`ExecutionPayload`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#executionpayload) object from the CL Bellatrix spec.'
+              properties:
+                parent_hash:
+                  $ref: '#/components/schemas/Root'
+                fee_recipient:
+                  $ref: '#/components/schemas/ExecutionAddress'
+                state_root:
+                  $ref: '#/components/schemas/Root'
+                receipts_root:
+                  $ref: '#/components/schemas/Root'
+                logs_bloom:
+                  type: string
+                  example: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+                  pattern: '^0x[a-fA-F0-9]{512}$'
+                prev_randao:
+                  $ref: '#/components/schemas/BeaconState/properties/randao_mixes/items/allOf/0'
+                block_number:
+                  $ref: '#/components/schemas/Uint64'
+                gas_limit:
+                  $ref: '#/components/schemas/Uint64'
+                gas_used:
+                  $ref: '#/components/schemas/Uint64'
+                timestamp:
+                  $ref: '#/components/schemas/Uint64'
+                extra_data:
+                  type: string
+                  description: Extra data on the execution (Ethereum 1) network.
+                  example: '0xcf8e0d4e9587369b2301d0790347320302cc0943d5a1884560367e8208d920f2'
+                  pattern: '^0x[a-fA-F0-9]{0,64}$'
+                base_fee_per_gas:
+                  type: string
+                  example: '1'
+                block_hash:
+                  $ref: '#/components/schemas/Root'
+            - type: object
+              properties:
+                transactions_root:
+                  $ref: '#/components/schemas/Root'
+    Bellatrix.BeaconBlock:
+      description: 'The [`BeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#beaconblock) object from the CL Bellatrix spec.'
+      allOf:
+        - $ref: '#/components/schemas/Altair.BeaconBlock/allOf/0'
+        - type: object
+          properties:
+            body:
+              allOf:
+                - type: object
+                  description: 'The [`BeaconBlockBody`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#beaconblockbody) object from the CL Bellatrix spec.'
+                  properties:
+                    randao_reveal:
+                      allOf:
+                        - $ref: '#/components/schemas/Signature'
+                        - description: The RanDAO reveal value provided by the validator.
+                    eth1_data:
+                      $ref: '#/components/schemas/BeaconState/properties/eth1_data'
+                    graffiti:
+                      type: string
+                      pattern: '^0x[a-fA-F0-9]{64}$'
+                    proposer_slashings:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProposerSlashing'
+                    attester_slashings:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AttesterSlashing'
+                    attestations:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Attestation'
+                    deposits:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/BeaconBlock/allOf/1/properties/body/properties/deposits/items'
+                    voluntary_exits:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SignedVoluntaryExit'
+                    sync_aggregate:
+                      $ref: '#/components/schemas/Altair.BeaconBlock/allOf/1/properties/body/properties/sync_aggregate'
+                - type: object
+                  properties:
+                    execution_payload:
+                      allOf:
+                        - $ref: '#/components/schemas/Bellatrix.BeaconState/properties/latest_execution_payload_header/allOf/0'
+                        - type: object
+                          properties:
+                            transactions:
+                              type: array
+                              items:
+                                allOf:
+                                  - type: string
+                                    description: A transaction on the execution (Ethereum 1) network.
+                                    example: '0x02f878831469668303f51d843b9ac9f9843b9aca0082520894c93269b73096998db66be0441e836d873535cb9c8894a19041886f000080c001a031cc29234036afbf9a1fb9476b463367cb1f957ac0b919b69bbc798436e604aaa018c4e9c3914eb27aadd0b91e10b18655739fcf8c1fc398763a9f1beecb8ddc86'
+                                    pattern: '^0x[a-fA-F0-9]{0,2147483648}$'
+                              maxItems: 1048576
+    Bellatrix.SignedBeaconBlock:
+      type: object
+      description: 'The [`SignedBeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#signedbeaconblock) object envelope from the CL Bellatrix spec.'
+      properties:
+        message:
+          $ref: '#/components/schemas/Bellatrix.BeaconBlock'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    Bellatrix.BlindedBeaconBlock:
+      description: 'A variant of the the [`BeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#beaconblock) object from the CL Bellatrix spec, which contains a `BlindedBeaconBlockBody` rather than a `BeaconBlockBody`.'
+      allOf:
+        - $ref: '#/components/schemas/Altair.BeaconBlock/allOf/0'
+        - type: object
+          properties:
+            body:
+              description: 'A variant of the [`BeaconBlockBody`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#beaconblockbody) object from the CL Bellatrix spec, which contains a transactions root rather than a full transactions list.'
+              allOf:
+                - $ref: '#/components/schemas/Bellatrix.BeaconBlock/allOf/1/properties/body/allOf/0'
+                - type: object
+                  properties:
+                    execution_payload_header:
+                      $ref: '#/components/schemas/Bellatrix.BeaconState/properties/latest_execution_payload_header'
+    Bellatrix.SignedBlindedBeaconBlock:
+      type: object
+      description: 'A variant of the the the [`SignedBeaconBlock`](https://github.com/ethereum/consensus-specs/blob/v1.1.9/specs/bellatrix/beacon-chain.md#signedbeaconblock) object envelope from the CL Bellatrix spec, which contains a `BlindedBeaconBlock` rather than a `BeaconBlock`.'
+      properties:
+        message:
+          $ref: '#/components/schemas/Bellatrix.BlindedBeaconBlock'
+        signature:
+          $ref: '#/components/schemas/Signature'
+    ConsensusVersion:
+      enum:
+        - phase0
+        - altair
+        - bellatrix
+      example: phase0
+    SignedValidatorRegistration:
+      type: object
+      description: The `SignedValidatorRegistration` object from the Builder API specification.
+      properties:
+        message:
+          type: object
+          description: The `ValidatorRegistration` object from the Builder API specification.
+          properties:
+            fee_recipient:
+              $ref: '#/components/schemas/ExecutionAddress'
+              description: Address to receive fees from the block.
+            gas_limit:
+              $ref: '#/components/schemas/Uint64'
+              description: Preferred gas limit of validator.
+            timestamp:
+              $ref: '#/components/schemas/Uint64'
+              description: Unix timestamp of registration.
+            pubkey:
+              $ref: '#/components/schemas/AttesterDuty/properties/pubkey'
+              description: BLS public key of validator.
+        signature:
+          $ref: '#/components/schemas/Signature'

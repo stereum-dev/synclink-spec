@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "redocly preview-docs",
-    "build": "redocly bundle -o dist",
-    "test": "redocly lint"
+    "start": "node src/server.js",
+    "build": "swagger-cli bundle src/openapi.yaml --outfile src/_build/openapi.yaml --type yaml"
   },
   "config": {
     "port": "4040"
@@ -15,6 +14,11 @@
   "author": "Ali Montajebi",
   "license": "MIT",
   "dependencies": {
-    "@redocly/cli": "^1.0.0-beta.102"
+    "express": "^4.18.1",
+    "swagger-ui-express": "^4.4.0",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "swagger-cli": "^4.0.4"
   }
 }
