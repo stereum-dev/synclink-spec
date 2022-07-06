@@ -17,11 +17,12 @@ tags:
   - name: Synclink Client
 
 paths:
-  /api/v1/epochs:
-    $ref: api/server/epochs.yaml
-
-  /api/v1/checkpoint:
-    $ref: api/client/checkpoint.yaml
+  /eth/v2/beacon/blocks/{block_id}:
+    $ref: api/beacon/blocks/block.v2.yaml
+  /eth/v2/debug/beacon/states/{state_id}:
+    $ref: api/debug/state.v2.yaml
+  /eth/v1/beacon/blocks/{block_id}/root:
+    $ref: api/beacon/blocks/root.yaml
 
 components:
   schemas:
@@ -130,3 +131,26 @@ components:
       example: "phase0"
     SignedValidatorRegistration:
       $ref: "./types/registration.yaml#/SignedValidatorRegistration"
+
+  parameters:
+    StateId:
+      $ref: "./params/index.yaml#/StateId"
+    BlockId:
+      $ref: "./params/index.yaml#/BlockId"
+
+  headers:
+    Eth-Consensus-Version:
+      description: Required in response so client can deserialize returned json or ssz data more effectively.
+      required: true
+      schema:
+        $ref: "#/components/schemas/ConsensusVersion"
+
+  responses:
+    InvalidRequest:
+      $ref: "./types/http.yaml#/InvalidRequest"
+    NotFound:
+      $ref: "./types/http.yaml#/NotFound"
+    InternalError:
+      $ref: "./types/http.yaml#/InternalError"
+    CurrentlySyncing:
+      $ref: "./types/http.yaml#/CurrentlySyncing"

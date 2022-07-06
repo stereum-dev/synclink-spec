@@ -1,0 +1,62 @@
+get:
+  operationId: "getStateV2"
+  summary: "Get full BeaconState object"
+  description: |
+    Returns full BeaconState object for given stateId.
+    Depending on `Accept` header it can be returned either as json or as bytes serialized by SSZ
+  tags:
+    - Synclink Client
+    - Synclink Server
+  parameters:
+    - name: state_id
+      in: path
+      required: true
+      $ref: "../../openapi.yaml#/components/parameters/StateId"
+  responses:
+    "200":
+      description: Success
+      headers:
+        Eth-Consensus-Version:
+          $ref: "../../openapi.yaml#/components/headers/Eth-Consensus-Version"
+      content:
+        application/json:
+          schema:
+            title: GetStateV2Response
+            type: object
+            properties:
+              version:
+                type: string
+                enum: [phase0, altair, bellatrix]
+                example: "phase0"
+              execution_optimistic:
+                $ref: "../../openapi.yaml#/components/schemas/ExecutionOptimistic"
+              data:
+                oneOf:
+                  - $ref: "../../openapi.yaml#/components/schemas/BeaconState"
+                  - $ref: "../../openapi.yaml#/components/schemas/Altair.BeaconState"
+                  - $ref: "../../openapi.yaml#/components/schemas/Bellatrix.BeaconState"
+        application/octet-stream:
+          schema:
+            description: "SSZ serialized state bytes. Use Accept header to choose this response type"
+    "400":
+      description: "Invalid state ID"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "../../openapi.yaml#/components/schemas/ErrorMessage"
+              - example:
+                  code: 400
+                  message: "Invalid state ID: current"
+    "404":
+      description: "State not found"
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "../../openapi.yaml#/components/schemas/ErrorMessage"
+              - example:
+                  code: 404
+                  message: "State not found"
+    "500":
+      $ref: "../../openapi.yaml#/components/responses/InternalError"
