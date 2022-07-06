@@ -17,6 +17,9 @@ tags:
   - name: Synclink Client
 
 paths:
+  /eth/v1/node/syncing:
+    $ref: api/node/syncing.yaml
+
   /eth/v2/beacon/blocks/{block_id}:
     $ref: api/beacon/blocks/block.v2.yaml
   /eth/v2/debug/beacon/states/{state_id}:
