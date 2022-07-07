@@ -1,6 +1,10 @@
 openapi: "3.0.0"
 
 info:
+  x-logo:
+    url: "http://synclink.io/wp-content/uploads/2022/05/SyncLink-Logo.png"
+    backgroundColor: "#A7ABCC"
+    altText: "synclink logo"
   version: 1.0.0
   title: SyncLink API Specification
   description: SyncLink client and server specification.
@@ -8,9 +12,9 @@ info:
     name: MIT
     url: https://github.com/stereum-dev/synclink-spec/blob/main/LICENSE
   contact:
-    name: API Support
-    url: http://www.example.com/support
-    email: support@example.com
+    name: Support
+    url: http://synclink.io
+    email: stereum@stereum.net
 
 tags:
   - name: Synclink Server
