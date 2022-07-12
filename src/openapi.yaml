@@ -23,6 +23,8 @@ tags:
 paths:
   /eth/v1/node/syncing:
     $ref: api/node/syncing.yaml
+  /eth/v1/node/version:
+    $ref: api//node/version.yaml
 
   /eth/v2/beacon/blocks/{block_id}:
     $ref: api/beacon/blocks/block.v2.yaml
