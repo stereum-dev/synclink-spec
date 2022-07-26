@@ -4,7 +4,6 @@ get:
   description: Retrieves hashTreeRoot of BeaconBlock/BeaconBlockHeader
   tags:
     - Synclink Client
-    - Synclink Server
   parameters:
     - name: block_id
       in: path

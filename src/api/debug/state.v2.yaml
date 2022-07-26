@@ -6,7 +6,6 @@ get:
     Depending on `Accept` header it can be returned either as json or as bytes serialized by SSZ
   tags:
     - Synclink Client
-    - Synclink Server
   parameters:
     - name: state_id
       in: path

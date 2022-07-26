@@ -1,0 +1,33 @@
+get:
+  operationId: "getCheckpointPackage"
+  tags:
+    - Synclink Server
+  summary: "Get checkpoint package"
+  description: "Get url of archive checkpoint data of the running beacon node."
+  responses:
+    "200":
+      description: Request successful
+      content:
+        application/json:
+          schema:
+            title: GetCheckpointPackageResponse
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  package:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      meta:
+                        type: object
+                        properties:
+                          hash:
+                            type: string
+                          algorithm:
+                            type: string
+
+    "500":
+      $ref: "../../openapi.yaml#/components/responses/InternalError"
