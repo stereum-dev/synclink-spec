@@ -21,13 +21,16 @@ get:
                     properties:
                       url:
                         type: string
-                      meta:
-                        type: object
-                        properties:
-                          hash:
-                            type: string
-                          algorithm:
-                            type: string
+                        example: http://s3-us-east-1.amazonaws.com/bucket/61122.zip
+                      epoch:
+                        type: integer
+                        example: 61122
+                      hash:
+                        type: string
+                        example: "17ad55013fd8d6ca31a70625b56bbb43a49379cb53fcb7f41a7c7e558e79d6f3"
+                      algorithm:
+                        type: string
+                        example: "SHA256"
 
     "500":
       $ref: "../../openapi.yaml#/components/responses/InternalError"
