@@ -2,8 +2,8 @@ get:
   operationId: "getCheckpointPackage"
   tags:
     - Synclink Server
-  summary: "Get checkpoint package"
-  description: "Get url of archive checkpoint data of the running beacon node."
+  summary: "Get syncpoint package"
+  description: "Get url of archive syncpoint data of the running beacon node."
   responses:
     "200":
       description: Request successful

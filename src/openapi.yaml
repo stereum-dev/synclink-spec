@@ -21,7 +21,7 @@ tags:
   - name: Synclink Client
 
 paths:
-  /api/v1/packages/checkpoint:
+  /api/v1/packages/syncpoint:
     $ref: api/packages/checkpoint.yaml
 
   /eth/v1/node/version:
