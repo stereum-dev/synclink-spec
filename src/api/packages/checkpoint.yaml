@@ -28,6 +28,9 @@ get:
                             epoch:
                               type: integer
                               example: 61122
+                            slot:
+                              type: integer
+                              example: 1405806
                             hash:
                               type: string
                               example: "17ad55013fd8d6ca31a70625b56bbb43a49379cb53fcb7f41a7c7e558e79d6f3"
