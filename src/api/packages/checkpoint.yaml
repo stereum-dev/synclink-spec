@@ -25,9 +25,6 @@ get:
                             url:
                               type: string
                               example: http://s3-us-east-1.amazonaws.com/bucket/61122.zip
-                            epoch:
-                              type: integer
-                              example: 61122
                             slot:
                               type: integer
                               example: 1405806
