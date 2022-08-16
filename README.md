@@ -1,32 +1,15 @@
-# SyncLink API Specification
+# SyncLink Specifications
 
-The API specification for SyncLink server and client.
+This repository contains official specifications for the SyncLink project but also rudimentary documents of analysis, charts, drafts, notes with simple ideas or source files for the tools we use to create and present such documents.
 
-## Installation
+## General Specifications
 
-1. Install [Node JS](https://nodejs.org/).
+* [SyncLink API](../../tree/api)
 
-2. Use the package manager [npm](https://npmjs.org/) to install the required modules.
+## Further Documents and Specifications
 
-```bash
-npm install
-```
-
-## Usage
-
-### `npm start`
-
-Starts the reference docs preview server.
-
-### `npm run build`
-
-Bundles the definition to the dist folder.
-
-### `npm test`
-
-Validates the definition.
-
-For changing the port easily change the port config in the package.json file.
+* [SyncLink Server](server/README.md)
+* [SyncLink Client](client/README.md)
 
 ## License
 
