@@ -24,6 +24,8 @@ paths:
   /api/v1/packages/syncpoint:
     $ref: api/packages/checkpoint.yaml
 
+  /eth/v1/beacon/states/{state_id}/finality_checkpoints:
+    $ref: api/beacon/states/finality_checkpoints.yaml
   /eth/v1/node/version:
     $ref: api/node/version.yaml
   /eth/v2/beacon/blocks/{block_id}:
