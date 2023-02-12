@@ -2,7 +2,7 @@ openapi: "3.0.0"
 
 info:
   x-logo:
-    url: "http://synclink.io/wp-content/uploads/2022/05/SyncLink-Logo.png"
+    url: "https://synclink.io/wp-content/uploads/2022/11/cropped-SyncLink_CurrentLogo-1024x1024.png"
     backgroundColor: "#A7ABCC"
     altText: "synclink logo"
   version: 1.0.0
